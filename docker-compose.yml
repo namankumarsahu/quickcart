@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: quickcart
+      POSTGRES_PASSWORD: quickcart   # dev-only credential
+      POSTGRES_DB: quickcart
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # -h 127.0.0.1 forces TCP. During first-time init, Postgres runs a
+      # temporary server that only listens on a unix socket, so a socket-based
+      # check could report "healthy" before your migration has run.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U quickcart -d quickcart"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
